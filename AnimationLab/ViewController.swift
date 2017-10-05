@@ -17,6 +17,7 @@ class ViewController: UIViewController {
 
     var newlyCreatedFace: UIImageView!
     var newlyCreatedFaceCenter: CGPoint!
+    var movingFaceCenter: CGPoint!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,6 +50,21 @@ class ViewController: UIViewController {
             animateTrayTo(self.trayCenterWhenClosed)
     }
 
+    @objc func facePan(sender: UIPanGestureRecognizer) {
+        switch sender.state {
+        case .began:
+            movingFaceCenter = sender.view?.center
+            sender.view?.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        case .changed:
+            let translation = sender.translation(in: sender.view?.superview)
+            sender.view?.center = CGPoint(x: movingFaceCenter.x + translation.x, y: movingFaceCenter.y + translation.y)
+        case .ended:
+            sender.view?.transform = .identity
+        default:
+            break
+        }
+    }
+
     @IBAction func faceDragged(_ sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began:
@@ -58,6 +74,9 @@ class ViewController: UIViewController {
             newlyCreatedFace.center = imageView.center
             newlyCreatedFace.center.y += trayView.frame.origin.y
             newlyCreatedFaceCenter = newlyCreatedFace.center
+            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(facePan(sender:)))
+            newlyCreatedFace.isUserInteractionEnabled = true
+            newlyCreatedFace.addGestureRecognizer(panGestureRecognizer)
         case .changed:
             let translation = sender.translation(in: trayView.superview)
             newlyCreatedFace.center = CGPoint(x: newlyCreatedFaceCenter.x + translation.x, y: newlyCreatedFaceCenter.y + translation.y)
@@ -81,6 +100,7 @@ class ViewController: UIViewController {
             if veolocity.y < 0 {
                 openTray()
             } else {
+                closeTray()
             }
 
         } else if sender.state == .ended {
