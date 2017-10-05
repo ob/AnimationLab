@@ -12,12 +12,18 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var trayView: UIView!
 
-    var trayOriginalCenter: CGPoint!
+    var trayCenterWhenOpen: CGPoint!
+    var trayCenterWhenClosed: CGPoint!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        trayOriginalCenter = trayView.center
+        let midx = trayView.superview?.frame.midX
+        var midy = (trayView.superview?.frame.maxY)! - trayView.frame.height / 2.0
+        trayCenterWhenOpen = CGPoint(x: midx!, y: midy)
+        midy = (trayView.superview?.frame.maxY)! + (trayView.frame.height / 2.0) - 30
+        trayCenterWhenClosed = CGPoint(x: midx!, y: midy)
+        trayView.center = trayCenterWhenClosed
     }
 
     override func didReceiveMemoryWarning() {
@@ -25,17 +31,40 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func trayDragged(_ sender: UIPanGestureRecognizer) {
-        let point = sender.location(in: trayView.superview)
+    fileprivate func animateTrayTo(_ position: CGPoint) {
+        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: [], animations: {
+            self.trayView.center = position
+        }, completion: nil)
 
+    }
+
+    fileprivate func openTray() {
+        animateTrayTo(self.trayCenterWhenOpen)
+    }
+
+    fileprivate func closeTray() {
+            animateTrayTo(self.trayCenterWhenClosed)
+    }
+
+    @IBAction func trayTapped(_ sender: Any) {
+        if trayView.center == trayCenterWhenClosed {
+            openTray()
+        } else {
+            closeTray()
+        }
+    }
+
+    @IBAction func trayDragged(_ sender: UIPanGestureRecognizer) {
         if sender.state == .began {
         } else if sender.state == .changed {
-            let translation = sender.translation(in: trayView.superview)
-            trayView.center = CGPoint(x: trayOriginalCenter.x, y: trayOriginalCenter.y + translation.y)
-            print("Gesture changed at: \(point)")
+            let veolocity = sender.velocity(in: trayView.superview)
+            if veolocity.y < 0 {
+                openTray()
+            } else {
+            }
+
         } else if sender.state == .ended {
-            trayOriginalCenter = trayView.center
-            print("Gesture ended at: \(point)")
+
         }
     }
 
