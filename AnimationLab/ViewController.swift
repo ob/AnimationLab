@@ -14,7 +14,10 @@ class ViewController: UIViewController {
 
     var trayCenterWhenOpen: CGPoint!
     var trayCenterWhenClosed: CGPoint!
-    
+
+    var newlyCreatedFace: UIImageView!
+    var newlyCreatedFaceCenter: CGPoint!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -44,6 +47,23 @@ class ViewController: UIViewController {
 
     fileprivate func closeTray() {
             animateTrayTo(self.trayCenterWhenClosed)
+    }
+
+    @IBAction func faceDragged(_ sender: UIPanGestureRecognizer) {
+        switch sender.state {
+        case .began:
+            let imageView = sender.view as! UIImageView
+            newlyCreatedFace = UIImageView(image: imageView.image)
+            view.addSubview(newlyCreatedFace)
+            newlyCreatedFace.center = imageView.center
+            newlyCreatedFace.center.y += trayView.frame.origin.y
+            newlyCreatedFaceCenter = newlyCreatedFace.center
+        case .changed:
+            let translation = sender.translation(in: trayView.superview)
+            newlyCreatedFace.center = CGPoint(x: newlyCreatedFaceCenter.x + translation.x, y: newlyCreatedFaceCenter.y + translation.y)
+        default:
+            break
+        }
     }
 
     @IBAction func trayTapped(_ sender: Any) {
