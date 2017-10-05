@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIGestureRecognizerDelegate {
 
     @IBOutlet weak var trayView: UIView!
 
@@ -18,6 +18,8 @@ class ViewController: UIViewController {
     var newlyCreatedFace: UIImageView!
     var newlyCreatedFaceCenter: CGPoint!
     var movingFaceCenter: CGPoint!
+    var lastRotation: CGFloat = 0.0
+    var originalRotation: CGFloat = 0.0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,6 +77,23 @@ class ViewController: UIViewController {
         }
     }
 
+    @objc func faceRotated(sender: UIRotationGestureRecognizer) {
+        switch sender.state {
+        case .began:
+            sender.rotation = lastRotation
+            originalRotation = sender.rotation
+        case .changed:
+            let newRotation = sender.rotation + originalRotation
+            let transform = sender.view?.transform
+            let newTransform = CGAffineTransform(rotationAngle: newRotation)
+            sender.view?.transform = (transform?.concatenating(newTransform))!
+        case .ended:
+            lastRotation = sender.rotation
+        default:
+            break
+        }
+    }
+
     @IBAction func faceDragged(_ sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began:
@@ -88,7 +107,10 @@ class ViewController: UIViewController {
             let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(facePan(sender:)))
             newlyCreatedFace.addGestureRecognizer(panGestureRecognizer)
             let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(facePinch(sender:)))
+            pinchGestureRecognizer.delegate = self
             newlyCreatedFace.addGestureRecognizer(pinchGestureRecognizer)
+            let rotateGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(faceRotated(sender:)))
+            newlyCreatedFace.addGestureRecognizer(rotateGestureRecognizer)
 
         case .changed:
             let translation = sender.translation(in: trayView.superview)
@@ -119,6 +141,10 @@ class ViewController: UIViewController {
         } else if sender.state == .ended {
 
         }
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 
 }
