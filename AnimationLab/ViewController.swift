@@ -65,6 +65,16 @@ class ViewController: UIViewController {
         }
     }
 
+    @objc func facePinch(sender: UIPinchGestureRecognizer) {
+        switch sender.state {
+        case .changed:
+            let scale = sender.scale
+            sender.view?.transform = CGAffineTransform(scaleX: scale, y: scale)
+        default:
+            break
+        }
+    }
+
     @IBAction func faceDragged(_ sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began:
@@ -74,9 +84,12 @@ class ViewController: UIViewController {
             newlyCreatedFace.center = imageView.center
             newlyCreatedFace.center.y += trayView.frame.origin.y
             newlyCreatedFaceCenter = newlyCreatedFace.center
-            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(facePan(sender:)))
             newlyCreatedFace.isUserInteractionEnabled = true
+            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(facePan(sender:)))
             newlyCreatedFace.addGestureRecognizer(panGestureRecognizer)
+            let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(facePinch(sender:)))
+            newlyCreatedFace.addGestureRecognizer(pinchGestureRecognizer)
+
         case .changed:
             let translation = sender.translation(in: trayView.superview)
             newlyCreatedFace.center = CGPoint(x: newlyCreatedFaceCenter.x + translation.x, y: newlyCreatedFaceCenter.y + translation.y)
